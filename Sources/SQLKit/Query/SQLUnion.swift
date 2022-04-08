@@ -1,10 +1,22 @@
 public struct SQLUnion: SQLExpression {
     public var initialQuery: SQLSelect
     public var unions: [(SQLUnionJoiner, SQLSelect)]
+    
+    /// Zero or more `ORDER BY` clauses.
+    public var orderBy: [SQLExpression]
+    
+    /// If set, limits the maximum number of results.
+    public var limit: Int?
+    
+    /// If set, offsets the results.
+    public var offset: Int?
 
     public init(initialQuery: SQLSelect, unions: [(SQLUnionJoiner, SQLSelect)] = []) {
         self.initialQuery = initialQuery
         self.unions = unions
+        self.limit = nil
+        self.offset = nil
+        self.orderBy = []
     }
 
     public mutating func add(_ query: SQLSelect, all: Bool) {
@@ -32,6 +44,18 @@ public struct SQLUnion: SQLExpression {
                 statement.append(joiner)
                 appendQuery(query)
             }
+        }
+        if !self.orderBy.isEmpty {
+            serializer.write(" ORDER BY ")
+            SQLList(self.orderBy).serialize(to: &serializer)
+        }
+        if let limit = self.limit {
+            serializer.write(" LIMIT ")
+            serializer.write(limit.description)
+        }
+        if let offset = self.offset {
+            serializer.write(" OFFSET ")
+            serializer.write(offset.description)
         }
     }
 }
