@@ -1,4 +1,4 @@
-public final class SQLUnionBuilder: SQLQueryBuilder, SQLQueryFetcher {
+public final class SQLUnionBuilder: SQLQueryBuilder, SQLQueryFetcher, SQLPaginatableBuilder {
     public var query: SQLExpression { self.union }
 
     public var union: SQLUnion
@@ -37,6 +37,13 @@ public final class SQLUnionBuilder: SQLQueryBuilder, SQLQueryFetcher {
     public func except(all query: SQLSelect) -> Self {
         self.union.add(query, joiner: .init(type: .exceptAll))
        return self
+    }
+}
+
+extension SQLUnionBuilder {
+    public var paginatable: SQLPaginatable {
+        get { self.union }
+        set { self.union = newValue as! SQLUnion }
     }
 }
 
@@ -84,67 +91,6 @@ extension SQLUnionBuilder {
     /// Alias the `distinct` variant so it acts as the "default".
     public func except(_ predicate: (SQLSelectBuilder) -> SQLSelectBuilder) -> Self {
         return self.except(distinct: predicate)
-    }
-}
-
-// MARK: - Limit/offset
-
-extension SQLUnionBuilder {
-    /// Adds a `LIMIT` clause to the query. If called more than once, the last call wins.
-    ///
-    /// - Parameter max: Optional maximum limit. If `nil`, any existing limit is removed.
-    /// - Returns: `self` for chaining.
-    @discardableResult
-    public func limit(_ max: Int?) -> Self {
-        self.union.limit = max
-        return self
-    }
-
-    /// Adds a `OFFSET` clause to the query. If called more than once, the last call wins.
-    ///
-    /// - Parameter max: Optional offset. If `nil`, any existing offset is removed.
-    /// - Returns: `self` for chaining.
-    @discardableResult
-    public func offset(_ n: Int?) -> Self {
-        self.union.offset = n
-        return self
-    }
-}
-
-// MARK: - Order
-
-extension SQLUnionBuilder {
-    /// Adds an `ORDER BY` clause to the query with the specified column and ordering.
-    ///
-    /// - Parameters:
-    ///   - column: Name of column to sort results by. Appended to any previously added orderings.
-    ///   - direction: The sort direction for the column.
-    /// - Returns: `self` for chaining.
-    @discardableResult
-    public func orderBy(_ column: String, _ direction: SQLDirection = .ascending) -> Self {
-        return self.orderBy(SQLColumn(column), direction)
-    }
-
-
-    /// Adds an `ORDER BY` clause to the query with the specifed expression and ordering.
-    ///
-    /// - Parameters:
-    ///   - expression: Expression to sort results by. Appended to any previously added orderings.
-    ///   - direction: An expression describing the sort direction for the ordering expression.
-    /// - Returns: `self` for chaining.
-    @discardableResult
-    public func orderBy(_ expression: SQLExpression, _ direction: SQLExpression) -> Self {
-        return self.orderBy(SQLOrderBy(expression: expression, direction: direction))
-    }
-
-    /// Adds an `ORDER BY` clause to the query using the specified expression.
-    ///
-    /// - Parameter expression: Expression to sort results by. Appended to any previously added orderings.
-    /// - Returns: `self` for chaining.
-    @discardableResult
-    public func orderBy(_ expression: SQLExpression) -> Self {
-        union.orderBy.append(expression)
-        return self
     }
 }
 
