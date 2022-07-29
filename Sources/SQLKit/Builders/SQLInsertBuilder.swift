@@ -98,9 +98,21 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
     }
     
     @discardableResult
+    @_disfavoredOverload // Since [Encodable] is also Encodable, this is disfavored to prefer the one below.
     public func values(_ values: [Encodable]) -> Self {
         let row: [SQLExpression] = values.map(SQLBind.init)
         self.insert.values.append(row)
+        return self
+    }
+    
+    @discardableResult
+    public func values(_ valuesLists: [[Encodable]]) -> Self {
+        let rows: [[SQLExpression]] = valuesLists.map { valueList in
+            valueList.map { value in
+                SQLBind.init(value)
+            }
+        }
+        self.insert.values.append(contentsOf: rows)
         return self
     }
     
@@ -113,6 +125,12 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
     @discardableResult
     public func values(_ values: [SQLExpression]) -> Self {
         self.insert.values.append(values)
+        return self
+    }
+    
+    @discardableResult
+    public func values(_ values: [[SQLExpression]]) -> Self {
+        self.insert.values.append(contentsOf: values)
         return self
     }
 
