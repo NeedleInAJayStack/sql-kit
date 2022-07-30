@@ -352,13 +352,47 @@ final class SQLKitTests: XCTestCase {
         XCTAssertEqual(db.bindResults[0] as? [String], ["Jupiter"]) // instead of [["Jupiter"]]
     }
     
-    func testInsertWithNestedArrayOfEncodable() throws {
+    func testInsertValues() throws {
+        // Test variadic values method
+        try db.insert(into: "planets")
+            .columns(["name", "color"])
+            .values("Jupiter", "orange")
+            .run().wait()
+        XCTAssertEqual(db.results[0], "INSERT INTO `planets` (`name`, `color`) VALUES (?, ?)")
+        XCTAssertEqual(db.bindResults[0] as? [String], ["Jupiter", "orange"])
+        
+        // Test array values method
+        try db.insert(into: "planets")
+            .columns(["name", "color"])
+            .values(["Jupiter", "orange"])
+            .run().wait()
+        XCTAssertEqual(db.results[1], "INSERT INTO `planets` (`name`, `color`) VALUES (?, ?)")
+        XCTAssertEqual(db.bindResults[1] as? [String], ["Jupiter", "orange"])
+        
+        // Test nested array values method
         try db.insert(into: "planets")
             .columns(["name", "color"])
             .values([["Jupiter", "orange"],["Mars", "red"]])
             .run().wait()
-        XCTAssertEqual(db.results[0], "INSERT INTO `planets` (`name`, `color`) VALUES (?, ?), (?, ?)")
-        XCTAssertEqual(db.bindResults[0] as? [String], ["Jupiter", "orange", "Mars", "red"])
+        XCTAssertEqual(db.results[2], "INSERT INTO `planets` (`name`, `color`) VALUES (?, ?), (?, ?)")
+        XCTAssertEqual(db.bindResults[2] as? [String], ["Jupiter", "orange", "Mars", "red"])
+        
+        // Test multiple values calls make multiple rows
+        try db.insert(into: "planets")
+            .columns(["name", "color"])
+            .values(["Jupiter", "orange"])
+            .values(["Mars", "red"])
+            .run().wait()
+        XCTAssertEqual(db.results[3], "INSERT INTO `planets` (`name`, `color`) VALUES (?, ?), (?, ?)")
+        XCTAssertEqual(db.bindResults[3] as? [String], ["Jupiter", "orange", "Mars", "red"])
+        
+        // Test single-value input method
+        try db.insert(into: "planets")
+            .columns(["name"])
+            .values(["Jupiter"])
+            .run().wait()
+        XCTAssertEqual(db.results[4], "INSERT INTO `planets` (`name`) VALUES (?)")
+        XCTAssertEqual(db.bindResults[4] as? [String], ["Jupiter"])
     }
 
     // MARK: Returning
