@@ -41,9 +41,19 @@ public final class SQLUnionBuilder: SQLQueryBuilder, SQLQueryFetcher, SQLPaginat
 }
 
 extension SQLUnionBuilder {
-    public var paginatable: SQLPaginatable {
-        get { self.union }
-        set { self.union = newValue as! SQLUnion }
+    public var orderBy: [SQLExpression] {
+        get { self.union.orderBy }
+        set { self.union.orderBy = newValue }
+    }
+    
+    public var limit: Int? {
+        get { self.union.limit }
+        set { self.union.limit = newValue }
+    }
+    
+    public var offset: Int? {
+        get { self.union.offset }
+        set { self.union.offset = newValue }
     }
 }
 

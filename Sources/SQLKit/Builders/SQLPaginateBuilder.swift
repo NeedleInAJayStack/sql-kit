@@ -1,6 +1,13 @@
 
 public protocol SQLPaginatableBuilder: AnyObject {
-    var paginatable: SQLPaginatable { get set }
+    /// Zero or more `ORDER BY` clauses.
+    var orderBy: [SQLExpression] { get set }
+
+    /// If set, limits the maximum number of results.
+    var limit: Int? { get set }
+    
+    /// If set, offsets the results.
+    var offset: Int? { get set }
 }
 
 // MARK: - Limit/offset
@@ -12,7 +19,7 @@ extension SQLPaginatableBuilder {
     /// - Returns: `self` for chaining.
     @discardableResult
     public func limit(_ max: Int?) -> Self {
-        self.paginatable.limit = max
+        self.limit = max
         return self
     }
 
@@ -22,7 +29,7 @@ extension SQLPaginatableBuilder {
     /// - Returns: `self` for chaining.
     @discardableResult
     public func offset(_ n: Int?) -> Self {
-        self.paginatable.offset = n
+        self.offset = n
         return self
     }
 }
@@ -59,7 +66,7 @@ extension SQLPaginatableBuilder {
     /// - Returns: `self` for chaining.
     @discardableResult
     public func orderBy(_ expression: SQLExpression) -> Self {
-        paginatable.orderBy.append(expression)
+        orderBy.append(expression)
         return self
     }
 }

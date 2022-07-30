@@ -36,9 +36,19 @@ extension SQLSubqueryClauseBuilder {
 }
 
 extension SQLSubqueryClauseBuilder {
-    public var paginatable: SQLPaginatable {
-        get { self.select }
-        set { self.select = newValue as! SQLSelect }
+    public var orderBy: [SQLExpression] {
+        get { self.select.orderBy }
+        set { self.select.orderBy = newValue }
+    }
+    
+    public var limit: Int? {
+        get { self.select.limit }
+        set { self.select.limit = newValue }
+    }
+    
+    public var offset: Int? {
+        get { self.select.offset }
+        set { self.select.offset = newValue }
     }
 }
 

@@ -1,4 +1,4 @@
-public struct SQLUnion: SQLExpression, SQLPaginatable {
+public struct SQLUnion: SQLExpression {
     public var initialQuery: SQLSelect
     public var unions: [(SQLUnionJoiner, SQLSelect)]
     
@@ -45,7 +45,18 @@ public struct SQLUnion: SQLExpression, SQLPaginatable {
                 appendQuery(query)
             }
         }
-        serializePagination(to: &serializer)
+        if !self.orderBy.isEmpty {
+            serializer.write(" ORDER BY ")
+            SQLList(self.orderBy).serialize(to: &serializer)
+        }
+        if let limit = self.limit {
+            serializer.write(" LIMIT ")
+            serializer.write(limit.description)
+        }
+        if let offset = self.offset {
+            serializer.write(" OFFSET ")
+            serializer.write(offset.description)
+        }
     }
 }
 

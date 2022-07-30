@@ -1,7 +1,7 @@
 /// `SELECT` statement.
 ///
 /// See `SQLSelectBuilder` for building this query.
-public struct SQLSelect: SQLExpression, SQLPaginatable {
+public struct SQLSelect: SQLExpression {
     public var columns: [SQLExpression]
     public var tables: [SQLExpression]
     
@@ -72,7 +72,18 @@ public struct SQLSelect: SQLExpression, SQLPaginatable {
             serializer.write(" HAVING ")
             having.serialize(to: &serializer)
         }
-        serializePagination(to: &serializer)
+        if !self.orderBy.isEmpty {
+            serializer.write(" ORDER BY ")
+            SQLList(self.orderBy).serialize(to: &serializer)
+        }
+        if let limit = self.limit {
+            serializer.write(" LIMIT ")
+            serializer.write(limit.description)
+        }
+        if let offset = self.offset {
+            serializer.write(" OFFSET ")
+            serializer.write(offset.description)
+        }
         if let lockingClause = self.lockingClause {
             serializer.write(" ")
             lockingClause.serialize(to: &serializer)
