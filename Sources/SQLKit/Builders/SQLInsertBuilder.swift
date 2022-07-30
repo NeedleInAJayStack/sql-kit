@@ -98,21 +98,27 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
     }
     
     @discardableResult
-    @_disfavoredOverload // Since [Encodable] is also Encodable, this is disfavored to prefer the one below.
     public func values(_ values: [Encodable]) -> Self {
-        let row: [SQLExpression] = values.map(SQLBind.init)
-        self.insert.values.append(row)
-        return self
-    }
-    
-    @discardableResult
-    public func values(_ valuesLists: [[Encodable]]) -> Self {
-        let rows: [[SQLExpression]] = valuesLists.map { valueList in
-            valueList.map { value in
-                SQLBind.init(value)
+        // The fact that [Encodable] is also Encodable causes significant issues.
+        // For instance, we cannot ensure that someone doesn't provide mixed types like:
+        // ["a", ["b", "c"], "d"], which would certainly mess up this logic.
+        
+        var rows = [[SQLExpression]]() // Used in the case that values are arrays
+        var row = [SQLExpression]() // Used in the case that values are not arrays
+        for value in values {
+            if let listValues = value as? [Encodable] {
+                rows.append(listValues.map(SQLBind.init))
+            } else {
+                row.append(SQLBind.init(value))
             }
         }
-        self.insert.values.append(contentsOf: rows)
+        
+        if !rows.isEmpty {
+            self.insert.values.append(contentsOf: rows)
+        }
+        if !row.isEmpty {
+            self.insert.values.append(row)
+        }
         return self
     }
     
